@@ -35,7 +35,7 @@ class BaseTransform(nn.Module):
         use_points='lidar', 
         depth_input='scalar',
         height_expand=True,
-        add_depth_features=True,
+        add_depth_features=False,
     ) -> None:
         super().__init__()
         self.in_channels = in_channels

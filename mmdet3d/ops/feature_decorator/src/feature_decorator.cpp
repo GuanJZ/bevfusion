@@ -41,5 +41,5 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
         "feature_decorator_forward");
 }
 
-static auto registry =
-    torch::RegisterOperators("feature_decorator_ext::feature_decorator_forward", &feature_decorator_forward);
+// static auto registry =
+//     torch::RegisterOperators("feature_decorator_ext::feature_decorator_forward", &feature_decorator_forward);

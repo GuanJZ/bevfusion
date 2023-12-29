@@ -1,1 +1,1 @@
-from .feature_decorator import feature_decorator
+from . import feature_decorator
