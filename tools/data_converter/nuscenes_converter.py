@@ -23,6 +23,7 @@ nus_attributes = ('cycle.with_rider', 'cycle.without_rider',
 
 
 def create_nuscenes_infos(root_path,
+                          out_dir,
                           info_prefix,
                           version='v1.0-trainval',
                           max_sweeps=10, 
@@ -84,7 +85,7 @@ def create_nuscenes_infos(root_path,
     if test:
         print('test sample: {}'.format(len(train_nusc_infos)))
         data = dict(infos=train_nusc_infos, metadata=metadata)
-        info_path = osp.join(root_path,
+        info_path = osp.join(out_dir,
                              '{}_infos_test_radar.pkl'.format(info_prefix))
         mmcv.dump(data, info_path)
     else:
@@ -94,13 +95,13 @@ def create_nuscenes_infos(root_path,
         data = dict(infos=train_nusc_infos, metadata=metadata)
         # info_path = osp.join(info_prefix,
         #                      '{}_infos_train_radar.pkl'.format(info_prefix))
-        info_path = osp.join(root_path,
+        info_path = osp.join(out_dir,
                              '{}_infos_train.pkl'.format(info_prefix))
         mmcv.dump(data, info_path)
         data['infos'] = val_nusc_infos
         # info_val_path = osp.join(info_prefix,
         #                          '{}_infos_val_radar.pkl'.format(info_prefix))
-        info_val_path = osp.join(root_path,
+        info_val_path = osp.join(out_dir,
                              '{}_infos_val.pkl'.format(info_prefix))
         mmcv.dump(data, info_val_path)
 

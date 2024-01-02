@@ -29,7 +29,7 @@ def nuscenes_data_prep(
     if load_augmented is None:
         # otherwise, infos must have been created, we just skip.
         nuscenes_converter.create_nuscenes_infos(
-            root_path, info_prefix, version=version, max_sweeps=max_sweeps
+            root_path, out_dir, info_prefix, version=version, max_sweeps=max_sweeps
         )
 
         # if version == "v1.0-test":
