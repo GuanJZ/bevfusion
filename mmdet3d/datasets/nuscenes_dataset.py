@@ -216,13 +216,13 @@ class NuScenesDataset(Custom3DDataset):
             sweeps=info["sweeps"],
             timestamp=info["timestamp"],
             location=info.get('location', None), 
-            radar=info.get('radars', None), 
+            # radar=info.get('radars', None),
         )
 
         if data['location'] is None:
             data.pop('location')
-        if data['radar'] is None:
-            data.pop('radar')
+        # if data['radar'] is None:
+        #     data.pop('radar')
 
         # ego to global transform
         ego2global = np.eye(4).astype(np.float32)

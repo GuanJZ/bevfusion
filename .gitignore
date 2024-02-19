@@ -133,3 +133,4 @@ models/*
 data/*
 runs/*
 pretrained/*
+.idea/

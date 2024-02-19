@@ -111,12 +111,23 @@ def parse_args():
 
 
 def main():
+    os.environ['MASTER_HOST'] = 'localhost' + ':' + '12355'
+    # 运行参数加载
     args = parse_args()
+
+    # torchpack init process group ?
     dist.init()
 
+    # 启用cuDNN的自动调优器。
+    # 在第一次权重迭代时， 对每个卷积层尝试不同的cuDNN算法，并记录下最快的算法。在之后的迭代中会使用最快的算法来加速计算。
     torch.backends.cudnn.benchmark = True
+
+    # torch.cuda.set_devive(device), 设置当前线程所使用的GPU设备，device指定了GPU的编号
+    # dist.local_rank() 设备的索引号
+    # torch.cuda.set_device(device), device 是整型索引或者字符串
     torch.cuda.set_device(dist.local_rank())
 
+    # 表示这些参数是必须的
     assert args.out or args.eval or args.format_only or args.show or args.show_dir, (
         "Please specify at least one operation (save/eval/format/show the "
         'results / save the results) with the argument "--out", "--eval"'
@@ -128,7 +139,9 @@ def main():
 
     if args.out is not None and not args.out.endswith((".pkl", ".pickle")):
         raise ValueError("The output file must be a pkl file.")
-
+    
+    # 加载参数, 这里加载不奇怪，但是如何同时把所有参数全部加载进来就很奇怪了！
+    # 递归加载参数，将父目录里面的defualt.yaml全部加载了一遍
     configs.load(args.config, recursive=True)
     cfg = Config(recursive_eval(configs), filename=args.config)
     print(cfg)
@@ -166,7 +179,7 @@ def main():
         set_random_seed(args.seed, deterministic=args.deterministic)
 
     # build the dataloader
-    dataset = build_dataset(cfg.data.test)
+    dataset = build_dataset(cfg.data.test) # 只是一个调库，只需要传入参数 type即可， 也就是为数据集加载写的 dataset class 名称
     data_loader = build_dataloader(
         dataset,
         samples_per_gpu=samples_per_gpu,
