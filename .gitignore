@@ -134,3 +134,4 @@ data/*
 runs/*
 pretrained/*
 .idea/
+viz/

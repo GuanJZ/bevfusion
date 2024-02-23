@@ -97,8 +97,8 @@ def visualize_camera(
             ]:
                 cv2.line(
                     canvas,
-                    coords[index, start].astype(np.int),
-                    coords[index, end].astype(np.int),
+                    coords[index, start].astype(np.int32),
+                    coords[index, end].astype(np.int32),
                     color or OBJECT_PALETTE[name],
                     thickness,
                     cv2.LINE_AA,
@@ -169,7 +169,7 @@ def visualize_map(
     classes: List[str],
     background: Tuple[int, int, int] = (240, 240, 240),
 ) -> None:
-    assert masks.dtype == np.bool, masks.dtype
+    assert masks.dtype == np.bool_, masks.dtype
 
     canvas = np.zeros((*masks.shape[-2:], 3), dtype=np.uint8)
     canvas[:] = background
@@ -178,6 +178,8 @@ def visualize_map(
         if name in MAP_PALETTE:
             canvas[masks[k], :] = MAP_PALETTE[name]
     canvas = cv2.cvtColor(canvas, cv2.COLOR_RGB2BGR)
+    w, h = masks.shape[-2:]
+    canvas = cv2.resize(canvas, (4*w, 4*h))
 
     mmcv.mkdir_or_exist(os.path.dirname(fpath))
     mmcv.imwrite(canvas, fpath)

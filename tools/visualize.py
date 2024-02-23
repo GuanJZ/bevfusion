@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from mmcv import Config
 from mmcv.parallel import MMDistributedDataParallel
-from mmcv.runner import load_checkpoint
+from mmcv.runner import load_checkpoint, wrap_fp16_model
 from torchpack import distributed as dist
 from torchpack.utils.config import configs
 from tqdm import tqdm
@@ -73,11 +73,14 @@ def main() -> None:
         model = build_model(cfg.model)
         load_checkpoint(model, args.checkpoint, map_location="cpu")
 
+        wrap_fp16_model(model)
+
         model = MMDistributedDataParallel(
             model.cuda(),
             device_ids=[torch.cuda.current_device()],
             broadcast_buffers=False,
         )
+        model.cuda()
         model.eval()
 
     for data in tqdm(dataflow):
@@ -124,7 +127,7 @@ def main() -> None:
 
         if args.mode == "gt" and "gt_masks_bev" in data:
             masks = data["gt_masks_bev"].data[0].numpy()
-            masks = masks.astype(np.bool)
+            masks = masks.astype(np.bool_)
         elif args.mode == "pred" and "masks_bev" in outputs[0]:
             masks = outputs[0]["masks_bev"].numpy()
             masks = masks >= args.map_score
@@ -135,7 +138,7 @@ def main() -> None:
             for k, image_path in enumerate(metas["filename"]):
                 image = mmcv.imread(image_path)
                 visualize_camera(
-                    os.path.join(args.out_dir, f"camera-{k}", f"{name}.png"),
+                    os.path.join(args.out_dir, args.mode, f"camera-{k}", f"{name}.png"),
                     image,
                     bboxes=bboxes,
                     labels=labels,
@@ -146,7 +149,7 @@ def main() -> None:
         if "points" in data:
             lidar = data["points"].data[0][0].numpy()
             visualize_lidar(
-                os.path.join(args.out_dir, "lidar", f"{name}.png"),
+                os.path.join(args.out_dir, args.mode, "lidar", f"{name}.png"),
                 lidar,
                 bboxes=bboxes,
                 labels=labels,
@@ -157,7 +160,7 @@ def main() -> None:
 
         if masks is not None:
             visualize_map(
-                os.path.join(args.out_dir, "map", f"{name}.png"),
+                os.path.join(args.out_dir, args.mode, "map", f"{name}.png"),
                 masks,
                 classes=cfg.map_classes,
             )
