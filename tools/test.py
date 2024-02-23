@@ -111,6 +111,7 @@ def parse_args():
 
 
 def main():
+    os.environ['MASTER_HOST'] = "localhost" + ":" + "12355"
     args = parse_args()
     dist.init()
 

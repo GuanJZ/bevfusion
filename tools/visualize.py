@@ -7,10 +7,10 @@ import numpy as np
 import torch
 from mmcv import Config
 from mmcv.parallel import MMDistributedDataParallel
-from mmcv.runner import load_checkpoint
+from mmcv.runner import load_checkpoint, wrap_fp16_model
 from torchpack import distributed as dist
 from torchpack.utils.config import configs
-from torchpack.utils.tqdm import tqdm
+from tqdm import tqdm
 
 from mmdet3d.core import LiDARInstance3DBoxes
 from mmdet3d.core.utils import visualize_camera, visualize_lidar, visualize_map
@@ -36,6 +36,7 @@ def recursive_eval(obj, globals=None):
 
 
 def main() -> None:
+    os.environ['MASTER_HOST'] = "localhost" + ":" + "12355"
     dist.init()
 
     parser = argparse.ArgumentParser()
@@ -71,7 +72,7 @@ def main() -> None:
     if args.mode == "pred":
         model = build_model(cfg.model)
         load_checkpoint(model, args.checkpoint, map_location="cpu")
-
+        wrap_fp16_model(model)
         model = MMDistributedDataParallel(
             model.cuda(),
             device_ids=[torch.cuda.current_device()],
