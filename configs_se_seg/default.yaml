@@ -6,7 +6,7 @@ checkpoint_config:
   max_keep_ckpts: 1
 
 log_config:
-  interval: 50
+  interval: 5
   hooks:
     -
       type: TextLoggerHook

@@ -18,6 +18,7 @@ from mmdet3d.utils import get_root_logger, convert_sync_batchnorm, recursive_eva
 
 
 def main():
+    os.environ['MASTER_HOST'] = "localhost" + ":" + "12355"
     dist.init()
 
     parser = argparse.ArgumentParser()
