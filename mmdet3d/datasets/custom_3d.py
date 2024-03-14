@@ -4,6 +4,7 @@ from os import path as osp
 import mmcv
 import numpy as np
 from torch.utils.data import Dataset
+import torch
 
 from mmdet.datasets import DATASETS
 
@@ -138,6 +139,7 @@ class Custom3DDataset(Dataset):
                 - box_type_3d (str): 3D box type.
                 - box_mode_3d (str): 3D box mode.
         """
+        results["points"] = np.empty((0, 3))
         results["img_fields"] = []
         results["bbox3d_fields"] = []
         results["pts_mask_fields"] = []
@@ -145,6 +147,7 @@ class Custom3DDataset(Dataset):
         results["bbox_fields"] = []
         results["mask_fields"] = []
         results["seg_fields"] = []
+        results["lidar_aug_matrix"] = np.eye(4).astype(np.float32)
         results["box_type_3d"] = self.box_type_3d
         results["box_mode_3d"] = self.box_mode_3d
 
@@ -162,9 +165,7 @@ class Custom3DDataset(Dataset):
             return None
         self.pre_pipeline(input_dict)
         example = self.pipeline(input_dict)
-        if self.filter_empty_gt and (
-            example is None or ~(example["gt_labels_3d"]._data != -1).any()
-        ):
+        if self.filter_empty_gt and example is None:
             return None
         return example
 
