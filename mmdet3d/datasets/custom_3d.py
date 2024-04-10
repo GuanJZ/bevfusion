@@ -139,7 +139,6 @@ class Custom3DDataset(Dataset):
                 - box_type_3d (str): 3D box type.
                 - box_mode_3d (str): 3D box mode.
         """
-        results["points"] = np.empty((0, 3))
         results["img_fields"] = []
         results["bbox3d_fields"] = []
         results["pts_mask_fields"] = []

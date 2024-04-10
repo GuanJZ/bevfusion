@@ -1,5 +1,6 @@
 dataset_type: SpatialElementsSegDataset
-dataset_root: data/nuscenes_mini/
+#dataset_root: data/nuscenes_mini/
+dataset_root: data/se_seg/
 gt_paste_stop_epoch: -1
 reduce_beams: 32
 load_dim: 5
@@ -35,15 +36,16 @@ object_classes:
   - traffic_cone
 
 map_classes:
-  - drivable_area
-  # - drivable_area*
-  - ped_crossing
-  - walkway
-  - stop_line
-  - carpark_area
-  # - road_divider
-  # - lane_divider
-  - divider
+#  - drivable_area
+#  # - drivable_area*
+#  - ped_crossing
+#  - walkway
+#  - stop_line
+#  - carpark_area
+#  # - road_divider
+#  # - lane_divider
+#  - divider
+  - ge
 
 input_modality:
   use_lidar: false
@@ -57,7 +59,8 @@ train_pipeline:
     type: LoadMultiViewImageFromFiles
     to_float32: true
   -
-    type: LoadPointsFromFile
+    # 为了适应代码的格式，必须有points输入
+    type: LoadPseudoPoints
     coord_type: LIDAR
     load_dim: ${load_dim}
     use_dim: ${use_dim}
@@ -72,7 +75,7 @@ train_pipeline:
     rand_flip: true
     is_train: true
   -
-    type: LoadBEVSegmentation
+    type: makeBEVSegmentation
     dataset_root: ${dataset_root}
     xbound: [-50.0, 50.0, 0.5]
     ybound: [-50.0, 50.0, 0.5]
@@ -180,7 +183,7 @@ data:
   val:
     type: ${dataset_type}
     dataset_root: ${dataset_root}
-    ann_file: ${dataset_root + "nuscenes_infos_val.pkl"}
+    ann_file: ${dataset_root + "nuscenes_infos_train.pkl"}
     pipeline: ${test_pipeline}
     object_classes: ${object_classes}
     map_classes: ${map_classes}

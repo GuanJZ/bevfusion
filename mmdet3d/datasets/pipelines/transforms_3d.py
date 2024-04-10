@@ -36,17 +36,23 @@ class ImageAug3D:
 
     def sample_augmentation(self, results):
         W, H = results["ori_shape"]
+        # final dim 为 [256, 704]
         fH, fW = self.final_dim
         if self.is_train:
+            # 在[0.38, 0.55]区间随机生成一个数值，作为resize 的比率
             resize = np.random.uniform(*self.resize_lim)
+            # resize 尺寸
             resize_dims = (int(W * resize), int(H * resize))
             newW, newH = resize_dims
+            # self.bot_pct_lim = [0, 0], int((1 - 0 ) * newH) -> newH,
+            # crop_h = newH - fH, 应该是一个负数
             crop_h = int((1 - np.random.uniform(*self.bot_pct_lim)) * newH) - fH
             crop_w = int(np.random.uniform(0, max(0, newW - fW)))
             crop = (crop_w, crop_h, crop_w + fW, crop_h + fH)
             flip = False
             if self.rand_flip and np.random.choice([0, 1]):
                 flip = True
+            # self.rot_lim [-5.4, 5.4]
             rotate = np.random.uniform(*self.rot_lim)
         else:
             resize = np.mean(self.resize_lim)

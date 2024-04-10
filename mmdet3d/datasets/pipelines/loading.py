@@ -1,11 +1,13 @@
 import os
 from typing import Any, Dict, Tuple
-
+import matplotlib.pyplot as plt
 import mmcv
 import numpy as np
 from nuscenes.map_expansion.map_api import NuScenesMap
 from nuscenes.map_expansion.map_api import locations as LOCATIONS
 from PIL import Image
+import cv2
+import open3d as o3d
 
 
 from mmdet3d.core.points import BasePoints, get_points_type
@@ -79,6 +81,81 @@ class LoadMultiViewImageFromFiles:
         repr_str += f"color_type='{self.color_type}')"
         return repr_str
 
+
+@PIPELINES.register_module()
+class LoadMultiViewImageFromFilesWithDistortion:
+    """Load multi channel images from a list of separate channel files.
+
+    Expects results['image_paths'] to be a list of filenames.
+
+    Args:
+        to_float32 (bool): Whether to convert the img to float32.
+            Defaults to False.
+        color_type (str): Color type of the file. Defaults to 'unchanged'.
+    """
+
+    def __init__(self, to_float32=False, color_type="unchanged"):
+        self.to_float32 = to_float32
+        self.color_type = color_type
+
+    def __call__(self, results):
+        """Call function to load multi-view image from files.
+
+        Args:
+            results (dict): Result dict containing multi-view image filenames.
+
+        Returns:
+            dict: The result dict containing the multi-view image data. \
+                Added keys and values are described below.
+
+                - filename (str): Multi-view image filenames.
+                - img (np.ndarray): Multi-view image arrays.
+                - img_shape (tuple[int]): Shape of multi-view image arrays.
+                - ori_shape (tuple[int]): Shape of original image arrays.
+                - pad_shape (tuple[int]): Shape of padded image arrays.
+                - scale_factor (float): Scale factor.
+                - img_norm_cfg (dict): Normalization configuration of images.
+        """
+        filename = results["image_paths"]
+        # img is of shape (h, w, c, num_views)
+        # modified for waymo
+        images = []
+        h, w = 0, 0
+        for i in range(len(results["image_paths"])):
+            new_camera_matrix, undistorted_image = \
+                undistort_image(
+                    results["image_paths"][i],
+                    results["camera_intrinsics"][i][:3, :3],
+                    results["distortion_coefficients"][i]
+                )
+            camera_matrix = np.eye(4).astype(np.float32)
+            camera_matrix[:3, :3] = new_camera_matrix
+            results["camera_intrinsics"][i] = camera_matrix
+            images.append(undistorted_image[:, :, ::-1])
+            # images.append(Image.open(name))
+
+        # TODO: consider image padding in waymo
+
+        results["filename"] = filename
+        # unravel to list, see `DefaultFormatBundle` in formating.py
+        # which will transpose each image separately and then stack into array
+        results["img"] = images
+        # [1600, 900]
+        height, width = images[0].shape[:2]
+        results["img_shape"] = (width, height)
+        results["ori_shape"] = (width, height)
+        # Set initial values for default meta_keys
+        results["pad_shape"] = (width, height)
+        results["scale_factor"] = 1.0
+
+        return results
+
+    def __repr__(self):
+        """str: Return a string that describes the module."""
+        repr_str = self.__class__.__name__
+        repr_str += f"(to_float32={self.to_float32}, "
+        repr_str += f"color_type='{self.color_type}')"
+        return repr_str
 
 @PIPELINES.register_module()
 class LoadPointsFromMultiSweeps:
@@ -307,6 +384,64 @@ class LoadBEVSegmentation:
         data["gt_masks_bev"] = labels
         return data
 
+@PIPELINES.register_module()
+class makeBEVSegmentation:
+    def __init__(
+        self,
+        dataset_root: str,
+        xbound: Tuple[float, float, float],
+        ybound: Tuple[float, float, float],
+        classes: Tuple[str, ...],
+    ) -> None:
+        super().__init__()
+        import open3d as o3d
+        # 定义范围和分辨率
+        self.x_range, self.y_range, self.resolution = [xbound[0], xbound[1]], [ybound[0], ybound[1]], [xbound[2], ybound[2]]
+
+        # 计算网格大小
+        self.x_bins = int((self.x_range[1] - self.x_range[0]) / self.resolution[0])
+        self.y_bins = int((self.y_range[1] - self.y_range[0]) / self.resolution[1])
+
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        filename = data["ge_path"]
+        o3d_points = o3d.io.read_point_cloud(filename)
+        points = np.asarray(o3d_points.points)
+
+        # 过滤点云
+        filtered_points = points[(points[:, 0] >= self.x_range[0]) & (points[:, 0] <= self.x_range[1]) &
+                                 (points[:, 1] >= self.y_range[0]) & (points[:, 1] <= self.y_range[1])]
+        # 转换为BEV坐标
+        x_indices = np.floor((filtered_points[:, 0] - self.x_range[0]) / self.resolution[0]).astype(int)
+        y_indices = np.floor((filtered_points[:, 1] - self.y_range[0]) / self.resolution[1]).astype(int)
+
+        # 创建BEV图
+        bev_map = np.zeros((1, self.x_bins, self.y_bins), dtype=np.int32)
+        np.add.at(bev_map[0], (x_indices, y_indices), 1)
+        if 1:
+            # 可视化原始点云
+            fig, ax = plt.subplots(1, 2, figsize=(12, 6))
+            ax[0].scatter(filtered_points[:, 0], filtered_points[:, 1], s=1)
+            ax[0].set_title('Original Point Cloud')
+            ax[0].set_xlim(self.x_range)
+            ax[0].set_ylim(self.y_range)
+
+            # 可视化BEV网格
+            ax[1].imshow(bev_map[0].T, origin='lower', cmap='hot',
+                         extent=(self.x_range[0], self.x_range[1], self.y_range[0], self.y_range[1]))
+            ax[1].set_title('BEV Representation')
+
+            # 保存图形到磁盘，指定文件路径和格式
+            bev_path = filename.replace("annotation", "data").replace("ground_element", "gt_bev").replace("pcd", "png")
+            bev_dir = os.path.dirname(bev_path)
+            if not os.path.exists(bev_dir):
+                os.makedirs(bev_dir)
+            plt.savefig(f"{bev_path}", dpi=300, bbox_inches='tight')
+
+            # 关闭图形，释放资源
+            plt.close(fig)
+        data["gt_masks_bev"] = bev_map
+        return data
+
 
 @PIPELINES.register_module()
 class LoadPointsFromFile:
@@ -391,6 +526,103 @@ class LoadPointsFromFile:
         """
         lidar_path = results["lidar_path"]
         points = self._load_points(lidar_path)
+        points = points.reshape(-1, self.load_dim)
+        # TODO: make it more general
+        if self.reduce_beams and self.reduce_beams < 32:
+            points = reduce_LiDAR_beams(points, self.reduce_beams)
+        points = points[:, self.use_dim]
+        attribute_dims = None
+
+        if self.shift_height:
+            floor_height = np.percentile(points[:, 2], 0.99)
+            height = points[:, 2] - floor_height
+            points = np.concatenate(
+                [points[:, :3], np.expand_dims(height, 1), points[:, 3:]], 1
+            )
+            attribute_dims = dict(height=3)
+
+        if self.use_color:
+            assert len(self.use_dim) >= 6
+            if attribute_dims is None:
+                attribute_dims = dict()
+            attribute_dims.update(
+                dict(
+                    color=[
+                        points.shape[1] - 3,
+                        points.shape[1] - 2,
+                        points.shape[1] - 1,
+                    ]
+                )
+            )
+
+        points_class = get_points_type(self.coord_type)
+        points = points_class(
+            points, points_dim=points.shape[-1], attribute_dims=attribute_dims
+        )
+        results["points"] = points
+
+        return results
+
+# 为了适应代码的格式，必须有points输入
+@PIPELINES.register_module()
+class LoadPseudoPoints:
+    """Load Points From File.
+
+    Load sunrgbd and scannet points from file.
+
+    Args:
+        coord_type (str): The type of coordinates of points cloud.
+            Available options includes:
+            - 'LIDAR': Points in LiDAR coordinates.
+            - 'DEPTH': Points in depth coordinates, usually for indoor dataset.
+            - 'CAMERA': Points in camera coordinates.
+        load_dim (int): The dimension of the loaded points.
+            Defaults to 6.
+        use_dim (list[int]): Which dimensions of the points to be used.
+            Defaults to [0, 1, 2]. For KITTI dataset, set use_dim=4
+            or use_dim=[0, 1, 2, 3] to use the intensity dimension.
+        shift_height (bool): Whether to use shifted height. Defaults to False.
+        use_color (bool): Whether to use color features. Defaults to False.
+    """
+
+    def __init__(
+        self,
+        coord_type,
+        load_dim=6,
+        use_dim=[0, 1, 2],
+        shift_height=False,
+        use_color=False,
+        load_augmented=None,
+        reduce_beams=None,
+    ):
+        self.shift_height = shift_height
+        self.use_color = use_color
+        if isinstance(use_dim, int):
+            use_dim = list(range(use_dim))
+        assert (
+            max(use_dim) < load_dim
+        ), f"Expect all used dimensions < {load_dim}, got {use_dim}"
+        assert coord_type in ["CAMERA", "LIDAR", "DEPTH"]
+
+        self.coord_type = coord_type
+        self.load_dim = load_dim
+        self.use_dim = use_dim
+        self.load_augmented = load_augmented
+        self.reduce_beams = reduce_beams
+
+    def __call__(self, results):
+        """Call function to load points data from file.
+
+        Args:
+            results (dict): Result dict containing point clouds data.
+
+        Returns:
+            dict: The result dict containing the point clouds data. \
+                Added key and value are described below.
+
+                - points (:obj:`BasePoints`): Point clouds data.
+        """
+        points = np.zeros((0, 5))
         points = points.reshape(-1, self.load_dim)
         # TODO: make it more general
         if self.reduce_beams and self.reduce_beams < 32:

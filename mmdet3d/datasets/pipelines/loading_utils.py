@@ -2,6 +2,7 @@ import os
 
 import numpy as np
 import torch
+import cv2
 
 __all__ = ["load_augmented_point_cloud", "reduce_LiDAR_beams"]
 
