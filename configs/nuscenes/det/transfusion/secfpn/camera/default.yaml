@@ -1,0 +1,23 @@
+model:
+  decoder:
+    backbone: null
+    neck: null
+  heads:
+    object:
+      in_channels: 512
+
+optimizer:
+  type: AdamW
+  lr: 1.0e-4
+  weight_decay: 0.01
+
+optimizer_config:
+  grad_clip:
+    max_norm: 35
+    norm_type: 2
+
+lr_config:
+  policy: cyclic
+
+momentum_config:
+  policy: cyclic

@@ -37,6 +37,7 @@ MAP_PALETTE = {
     "road_divider": (202, 178, 214),
     "lane_divider": (106, 61, 154),
     "divider": (106, 61, 154),
+    "ge":(0, 0, 0)
 }
 
 
@@ -97,8 +98,8 @@ def visualize_camera(
             ]:
                 cv2.line(
                     canvas,
-                    coords[index, start].astype(np.int),
-                    coords[index, end].astype(np.int),
+                    coords[index, start].astype(np.int64),
+                    coords[index, end].astype(np.int64),
                     color or OBJECT_PALETTE[name],
                     thickness,
                     cv2.LINE_AA,
@@ -108,6 +109,7 @@ def visualize_camera(
 
     mmcv.mkdir_or_exist(os.path.dirname(fpath))
     mmcv.imwrite(canvas, fpath)
+    # print(f"saved in path: {fpath}")
 
 
 def visualize_lidar(

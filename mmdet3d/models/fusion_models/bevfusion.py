@@ -1,5 +1,6 @@
 from typing import Any, Dict
 
+import numpy as np
 import torch
 from mmcv.runner import auto_fp16, force_fp32
 from torch import nn
@@ -99,6 +100,9 @@ class BEVFusion(Base3DFusionModel):
         lidar_aug_matrix,
         img_metas,
     ) -> torch.Tensor:
+        # np.savetxt("assets/encoder.camera.input.txt", x.clone().cpu().numpy().reshape(-1))
+        # x = torch.tensor(np.loadtxt("assets/encoder.camera.input.cpp.txt").reshape(1, 6, 3, 256, 704),
+        #                  dtype=torch.float32).to(x.device)
         B, N, C, H, W = x.size()
         x = x.view(B * N, C, H, W)
 
@@ -257,9 +261,12 @@ class BEVFusion(Base3DFusionModel):
             x = features[0]
 
         batch_size = x.shape[0]
-
+        # np.savetxt("assets/decoder.input.txt", x.clone().cpu().numpy().reshape(-1))
         x = self.decoder["backbone"](x)
         x = self.decoder["neck"](x)
+        # np.savetxt("assets/decoder.output.txt", x.clone().cpu().numpy().reshape(-1))
+        # x = torch.tensor(np.loadtxt("assets/decoder.output.cpp.txt").reshape(1, 256, 128, 128),
+        #                  dtype=torch.float32).to(x.device)
 
         if self.training:
             outputs = {}
@@ -293,6 +300,8 @@ class BEVFusion(Base3DFusionModel):
                         )
                 elif type == "map":
                     logits = head(x)
+                    # logits = torch.tensor(np.loadtxt("assets/head.map.classifier.output.cpp.total.txt").reshape(1, 6, 200, 200),
+                    #      dtype=torch.float32).to(x.device)
                     for k in range(batch_size):
                         outputs[k].update(
                             {

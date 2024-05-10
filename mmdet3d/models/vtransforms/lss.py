@@ -66,13 +66,32 @@ class LSSTransform(BaseTransform):
 
         x = self.depthnet(x)
         depth = x[:, : self.D].softmax(dim=1)
-        x = depth.unsqueeze(1) * x[:, self.D : (self.D + self.C)].unsqueeze(2)
+        ###
+        import numpy as np
+        # np.savetxt("assets/encoder.camera.depth.output.txt", depth.clone().cpu().numpy().reshape(-1))
+        # np.savetxt("assets/encoder.camera.feats.output.txt", x[:, self.D : (self.D + self.C)].permute(0, 2, 3, 1) .clone().cpu().numpy().reshape(-1))
+        x = depth.unsqueeze(1) * x[:, self.D : (self.D + self.C)].unsqueeze(2) # 原来的代码
+        # import torch
+        # depth = torch.tensor(np.loadtxt("assets/encoder.camera.depth.output.cpp.txt").reshape(6, 118, 32, 88),
+        #                  dtype=torch.float32).to(x.device)
+        # print(depth.shape)
+        # feats = torch.tensor(np.loadtxt("assets/encoder.camera.feats.output.cpp.txt").reshape(6, 32, 88, 80),
+        #                  dtype=torch.float32).to(x.device).permute(0, 3, 1, 2)
+        # print(feats.shape)
+        # x = depth.unsqueeze(1) * feats.unsqueeze(2)
 
+        ###
         x = x.view(B, N, self.C, self.D, fH, fW)
         x = x.permute(0, 1, 3, 4, 5, 2)
         return x
 
     def forward(self, *args, **kwargs):
         x = super().forward(*args, **kwargs)
+        import numpy as np
+        # np.savetxt("assets/vtransform.downsample.input.txt", x.clone().cpu().numpy().reshape(-1))
+        # import torch
+        # x = torch.tensor(np.loadtxt("assets/vtransform.downsample.input.cpp.txt").reshape(1, 80, 256, 256),
+        #                  dtype=torch.float32).to(x.device)
         x = self.downsample(x)
+        # np.savetxt("assets/vtransform.downsample.output.txt", x.clone().cpu().numpy().reshape(-1))
         return x

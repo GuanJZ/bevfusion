@@ -132,3 +132,5 @@ data/
 pretrained/
 runs/
 viz/
+assets/
+tools/val_export/

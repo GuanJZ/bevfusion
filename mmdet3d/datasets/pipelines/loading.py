@@ -83,81 +83,6 @@ class LoadMultiViewImageFromFiles:
 
 
 @PIPELINES.register_module()
-class LoadMultiViewImageFromFilesWithDistortion:
-    """Load multi channel images from a list of separate channel files.
-
-    Expects results['image_paths'] to be a list of filenames.
-
-    Args:
-        to_float32 (bool): Whether to convert the img to float32.
-            Defaults to False.
-        color_type (str): Color type of the file. Defaults to 'unchanged'.
-    """
-
-    def __init__(self, to_float32=False, color_type="unchanged"):
-        self.to_float32 = to_float32
-        self.color_type = color_type
-
-    def __call__(self, results):
-        """Call function to load multi-view image from files.
-
-        Args:
-            results (dict): Result dict containing multi-view image filenames.
-
-        Returns:
-            dict: The result dict containing the multi-view image data. \
-                Added keys and values are described below.
-
-                - filename (str): Multi-view image filenames.
-                - img (np.ndarray): Multi-view image arrays.
-                - img_shape (tuple[int]): Shape of multi-view image arrays.
-                - ori_shape (tuple[int]): Shape of original image arrays.
-                - pad_shape (tuple[int]): Shape of padded image arrays.
-                - scale_factor (float): Scale factor.
-                - img_norm_cfg (dict): Normalization configuration of images.
-        """
-        filename = results["image_paths"]
-        # img is of shape (h, w, c, num_views)
-        # modified for waymo
-        images = []
-        h, w = 0, 0
-        for i in range(len(results["image_paths"])):
-            new_camera_matrix, undistorted_image = \
-                undistort_image(
-                    results["image_paths"][i],
-                    results["camera_intrinsics"][i][:3, :3],
-                    results["distortion_coefficients"][i]
-                )
-            camera_matrix = np.eye(4).astype(np.float32)
-            camera_matrix[:3, :3] = new_camera_matrix
-            results["camera_intrinsics"][i] = camera_matrix
-            images.append(undistorted_image[:, :, ::-1])
-            # images.append(Image.open(name))
-
-        # TODO: consider image padding in waymo
-
-        results["filename"] = filename
-        # unravel to list, see `DefaultFormatBundle` in formating.py
-        # which will transpose each image separately and then stack into array
-        results["img"] = images
-        # [1600, 900]
-        height, width = images[0].shape[:2]
-        results["img_shape"] = (width, height)
-        results["ori_shape"] = (width, height)
-        # Set initial values for default meta_keys
-        results["pad_shape"] = (width, height)
-        results["scale_factor"] = 1.0
-
-        return results
-
-    def __repr__(self):
-        """str: Return a string that describes the module."""
-        repr_str = self.__class__.__name__
-        repr_str += f"(to_float32={self.to_float32}, "
-        repr_str += f"color_type='{self.color_type}')"
-        return repr_str
-
-@PIPELINES.register_module()
 class LoadPointsFromMultiSweeps:
     """Load points from multiple sweeps.
 
@@ -408,37 +333,16 @@ class makeBEVSegmentation:
         points = np.asarray(o3d_points.points)
 
         # 过滤点云
-        filtered_points = points[(points[:, 0] >= self.x_range[0]) & (points[:, 0] <= self.x_range[1]) &
-                                 (points[:, 1] >= self.y_range[0]) & (points[:, 1] <= self.y_range[1])]
+        filtered_points = points[(points[:, 0] >= self.x_range[0]) & (points[:, 0] < self.x_range[1]) &
+                                 (points[:, 1] >= self.y_range[0]) & (points[:, 1] < self.y_range[1])]
         # 转换为BEV坐标
         x_indices = np.floor((filtered_points[:, 0] - self.x_range[0]) / self.resolution[0]).astype(int)
         y_indices = np.floor((filtered_points[:, 1] - self.y_range[0]) / self.resolution[1]).astype(int)
 
         # 创建BEV图
         bev_map = np.zeros((1, self.x_bins, self.y_bins), dtype=np.int32)
-        np.add.at(bev_map[0], (x_indices, y_indices), 1)
-        if 1:
-            # 可视化原始点云
-            fig, ax = plt.subplots(1, 2, figsize=(12, 6))
-            ax[0].scatter(filtered_points[:, 0], filtered_points[:, 1], s=1)
-            ax[0].set_title('Original Point Cloud')
-            ax[0].set_xlim(self.x_range)
-            ax[0].set_ylim(self.y_range)
-
-            # 可视化BEV网格
-            ax[1].imshow(bev_map[0].T, origin='lower', cmap='hot',
-                         extent=(self.x_range[0], self.x_range[1], self.y_range[0], self.y_range[1]))
-            ax[1].set_title('BEV Representation')
-
-            # 保存图形到磁盘，指定文件路径和格式
-            bev_path = filename.replace("annotation", "data").replace("ground_element", "gt_bev").replace("pcd", "png")
-            bev_dir = os.path.dirname(bev_path)
-            if not os.path.exists(bev_dir):
-                os.makedirs(bev_dir)
-            plt.savefig(f"{bev_path}", dpi=300, bbox_inches='tight')
-
-            # 关闭图形，释放资源
-            plt.close(fig)
+        # np.add.at(bev_map[0], (x_indices, y_indices), 1)
+        bev_map[0, x_indices, y_indices] = 1
         data["gt_masks_bev"] = bev_map
         return data
 

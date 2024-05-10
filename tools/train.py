@@ -16,6 +16,8 @@ from mmdet3d.datasets import build_dataset
 from mmdet3d.models import build_model
 from mmdet3d.utils import get_root_logger, convert_sync_batchnorm, recursive_eval
 
+from mmcv.runner import load_checkpoint
+
 
 def main():
     os.environ['MASTER_HOST'] = "localhost" + ":" + "12356"
@@ -23,6 +25,7 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("config", metavar="FILE", help="config file")
+    parser.add_argument("--checkpoint", type=str, default=None)
     parser.add_argument("--run-dir", metavar="DIR", help="run directory")
     args, opts = parser.parse_known_args()
 
@@ -67,7 +70,7 @@ def main():
     datasets = [build_dataset(cfg.data.train)]
 
     model = build_model(cfg.model)
-    model.init_weights()
+    load_checkpoint(model, args.checkpoint, map_location="cpu")
     if cfg.get("sync_bn", None):
         if not isinstance(cfg["sync_bn"], dict):
             cfg["sync_bn"] = dict(exclude=[])

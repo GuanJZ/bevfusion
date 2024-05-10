@@ -8,7 +8,7 @@ model:
         out_indices: [ 1, 2, 3 ]
         init_cfg:
           type: Pretrained
-          checkpoint: /home/junzhiguan/bevfusion/pretrained/model/resnet50/bevfusion-det.pth  # 只用 encoders.camera.backbone权重
+          checkpoint: pretrained/camera-only-seg.pth
       neck:
         type: GeneralizedLSSFPN
         in_channels: [512, 1024, 2048]

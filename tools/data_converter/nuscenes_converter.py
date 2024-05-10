@@ -179,6 +179,8 @@ def _fill_trainval_infos(nusc, train_scenes, val_scenes, test=False, max_sweeps=
     val_nusc_infos = []
 
     for sample in mmcv.track_iter_progress(nusc.sample):
+        # if not "000681a060c04755a1537cf83b53ba57" in sample['token']:
+        #     continue
         lidar_token = sample["data"]["LIDAR_TOP"]
         sd_rec = nusc.get("sample_data", sample["data"]["LIDAR_TOP"])
         cs_record = nusc.get("calibrated_sensor", sd_rec["calibrated_sensor_token"])

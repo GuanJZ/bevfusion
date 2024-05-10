@@ -10,7 +10,7 @@ model:
         out_indices: [1, 2, 3]
         init_cfg:
           type: Pretrained
-          checkpoint: /home/junzhiguan/bevfusion/pretrained/model/resnet50/bevfusion-det.pth
+          checkpoint: https://download.pytorch.org/models/resnet50-0676ba61.pth
       neck:
         in_channels: [512, 1024, 2048]
       vtransform:

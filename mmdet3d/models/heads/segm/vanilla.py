@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+import numpy as np
 import torch
 from torch import nn
 from torch.nn import functional as F
@@ -121,7 +122,10 @@ class BEVSegmentationHead(nn.Module):
             x = x[0]
 
         x = self.transform(x)
+        # x = torch.tensor(np.loadtxt("assets/sample_grid.output.cpp.half.txt").reshape(1, 256, 200, 200), dtype=torch.float32).to(x.device)
+        # np.savetxt("assets/head.map.classifier.input.txt", x.clone().cpu().numpy().reshape(-1))
         x = self.classifier(x)
+        # np.savetxt("assets/head.map.classifier.output.txt", torch.sigmoid(x).clone().cpu().numpy().reshape(-1))
 
         if self.training:
             losses = {}

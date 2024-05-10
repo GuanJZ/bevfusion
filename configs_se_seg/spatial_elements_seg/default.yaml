@@ -77,11 +77,9 @@ train_pipeline:
   -
     type: makeBEVSegmentation
     dataset_root: ${dataset_root}
-    xbound: [-50.0, 50.0, 0.5]
-    ybound: [-50.0, 50.0, 0.5]
+    xbound: [-50.0, 50.0, 0.1]
+    ybound: [-50.0, 50.0, 0.1]
     classes: ${map_classes}
-  -
-    type: RandomFlip3D
   -
     type: ImageNormalize
     mean: [0.485, 0.456, 0.406]
@@ -121,7 +119,7 @@ test_pipeline:
     type: LoadMultiViewImageFromFiles
     to_float32: true
   -
-    type: LoadPointsFromFile
+    type: LoadPseudoPoints
     coord_type: LIDAR
     load_dim: ${load_dim}
     use_dim: ${use_dim}
@@ -136,10 +134,10 @@ test_pipeline:
     rand_flip: false
     is_train: false
   -
-    type: LoadBEVSegmentation
+    type: makeBEVSegmentation
     dataset_root: ${dataset_root}
-    xbound: [-50.0, 50.0, 0.5]
-    ybound: [-50.0, 50.0, 0.5]
+    xbound: [-50.0, 50.0, 0.1]
+    ybound: [-50.0, 50.0, 0.1]
     classes: ${map_classes}
   -
     type: ImageNormalize
@@ -166,7 +164,7 @@ test_pipeline:
 
 data:
   samples_per_gpu: 8
-  workers_per_gpu: 0
+  workers_per_gpu: 4
   train:
     type: CBGSDataset
     dataset:

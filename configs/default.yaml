@@ -14,7 +14,7 @@ log_config:
       type: TensorboardLoggerHook
 
 load_from: null
-resume_from: /home/junzhiguan/bevfusion/runs/run-f6435a61/epoch_3.pth
+resume_from: null
 
 cudnn_benchmark: false
 fp16:
