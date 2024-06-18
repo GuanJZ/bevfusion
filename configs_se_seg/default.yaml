@@ -6,7 +6,7 @@ checkpoint_config:
   max_keep_ckpts: 1
 
 log_config:
-  interval: 5
+  interval: 100
   hooks:
     -
       type: TextLoggerHook
@@ -14,14 +14,14 @@ log_config:
       type: TensorboardLoggerHook
 
 load_from: null
-resume_from: null
+resume_from: /data0/junzhiguan/bevfusion/runs/camera_seg_0.2_0.1_2024-02-05_infer/latest.pth
 
 cudnn_benchmark: false
 fp16:
   loss_scale: 
     growth_interval: 2000
 
-max_epochs: 20
+max_epochs: 40
 runner:
   type: CustomEpochBasedRunner
   max_epochs: ${max_epochs}

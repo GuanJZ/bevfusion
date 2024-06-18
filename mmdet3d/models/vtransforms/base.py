@@ -10,9 +10,9 @@ __all__ = ["BaseTransform", "BaseDepthTransform"]
 
 
 def gen_dx_bx(xbound, ybound, zbound):
-    dx = torch.Tensor([row[2] for row in [xbound, ybound, zbound]])
-    bx = torch.Tensor([row[0] + row[2] / 2.0 for row in [xbound, ybound, zbound]])
-    nx = torch.LongTensor(
+    dx = torch.Tensor([row[2] for row in [xbound, ybound, zbound]]) # dx = torch.Tensor([0.4, 0.4, 20.0])
+    bx = torch.Tensor([row[0] + row[2] / 2.0 for row in [xbound, ybound, zbound]]) # bx = torch.Tensor([-51.0, -51.0, -9.0])
+    nx = torch.LongTensor( # nx = torch.LongTensor([256, 256, 1])
         [(row[1] - row[0]) / row[2] for row in [xbound, ybound, zbound]]
     )
     return dx, bx, nx
@@ -119,6 +119,8 @@ class BaseTransform(nn.Module):
             extra_trans = kwargs["extra_trans"]
             points += extra_trans.view(B, 1, 1, 1, 1, 3).repeat(1, N, 1, 1, 1, 1)
 
+        # import numpy as np;np.savetxt("assets/frustum.ego.fov30.points.txt", points.clone().cpu().numpy().reshape(-1))
+
         return points
 
     def get_cam_feats(self, x):
@@ -133,7 +135,7 @@ class BaseTransform(nn.Module):
         x = x.reshape(Nprime, C)
 
         # flatten indices
-        geom_feats = ((geom_feats - (self.bx - self.dx / 2.0)) / self.dx).long()
+        geom_feats = ((geom_feats - (self.bx - self.dx / 2.0)) / self.dx).long() # 计算每一个视锥点在bev网格中的索引
         geom_feats = geom_feats.view(Nprime, 3)
         batch_ix = torch.cat(
             [

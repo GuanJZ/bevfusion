@@ -34,8 +34,8 @@ class ImageAug3D:
         self.rot_lim = rot_lim
         self.is_train = is_train
 
-    def sample_augmentation(self, results):
-        W, H = results["ori_shape"]
+    def sample_augmentation(self, WH):
+        W, H = WH
         # final dim 为 [256, 704]
         fH, fW = self.final_dim
         if self.is_train:
@@ -101,8 +101,8 @@ class ImageAug3D:
         imgs = data["img"]
         new_imgs = []
         transforms = []
-        for img in imgs:
-            resize, resize_dims, crop, flip, rotate = self.sample_augmentation(data)
+        for i, img in enumerate(imgs):
+            resize, resize_dims, crop, flip, rotate = self.sample_augmentation(data["ori_shape"][i])
             post_rot = torch.eye(2)
             post_tran = torch.zeros(2)
             new_img, rotation, translation = self.img_transform(

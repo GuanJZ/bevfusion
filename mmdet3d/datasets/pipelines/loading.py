@@ -66,10 +66,10 @@ class LoadMultiViewImageFromFiles:
         # which will transpose each image separately and then stack into array
         results["img"] = images
         # [1600, 900]
-        results["img_shape"] = images[0].size
-        results["ori_shape"] = images[0].size
+        results["img_shape"] = [img.size for img in images]
+        results["ori_shape"] = [img.size for img in images]
         # Set initial values for default meta_keys
-        results["pad_shape"] = images[0].size
+        results["pad_shape"] = [img.size for img in images]
         results["scale_factor"] = 1.0
         
         return results
@@ -329,8 +329,11 @@ class makeBEVSegmentation:
 
     def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
         filename = data["ge_path"]
-        o3d_points = o3d.io.read_point_cloud(filename)
-        points = np.asarray(o3d_points.points)
+        try:
+            o3d_points = o3d.io.read_point_cloud(filename)
+            points = np.asarray(o3d_points.points)
+        except:
+            points = np.empty((0,3))
 
         # 过滤点云
         filtered_points = points[(points[:, 0] >= self.x_range[0]) & (points[:, 0] < self.x_range[1]) &

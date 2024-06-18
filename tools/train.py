@@ -20,7 +20,7 @@ from mmcv.runner import load_checkpoint
 
 
 def main():
-    os.environ['MASTER_HOST'] = "localhost" + ":" + "12356"
+    os.environ['MASTER_HOST'] = "localhost" + ":" + "12378"
     dist.init()
 
     parser = argparse.ArgumentParser()

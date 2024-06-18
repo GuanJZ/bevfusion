@@ -2,6 +2,7 @@ import argparse
 import copy
 import os
 import cv2
+import open3d as o3d
 
 import numpy as np
 import torch
@@ -12,7 +13,6 @@ from torchpack import distributed as dist
 from torchpack.utils.config import configs
 from tqdm import tqdm
 
-from mmdet3d.core import LiDARInstance3DBoxes
 from mmdet3d.core.utils import visualize_camera, visualize_lidar, visualize_map
 from mmdet3d.datasets import build_dataloader, build_dataset
 from mmdet3d.models import build_model
@@ -32,6 +32,24 @@ def recursive_eval(obj, globals=None):
         obj = recursive_eval(obj, globals)
 
     return obj
+
+def bev_to_points(bev_seg, xbound, ybound, save_path):
+    indices = np.argwhere(bev_seg.squeeze() == 1)
+    x_indices, y_indices = indices[:, 0], indices[:, 1]
+    x_coords = x_indices * xbound[2] + xbound[0] + xbound[2] / 2.
+    y_coords = y_indices * ybound[2] + ybound[0] + ybound[2] / 2.
+    z_coords = np.full(x_coords.shape, -0.11)
+
+    points = np.vstack((x_coords, y_coords, z_coords)).T
+
+    o3d_points = o3d.geometry.PointCloud()
+    o3d_points.points = o3d.utility.Vector3dVector(points)
+
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    o3d.io.write_point_cloud(
+        save_path,
+        o3d_points
+    )
 
 def image2video(image_folder1, image_folder2, video_path):
     # 读取第一个文件夹中的图片文件名
@@ -89,7 +107,7 @@ def main() -> None:
     parser.add_argument("--bbox-score", type=float, default=None)
     parser.add_argument("--map-score", type=float, default=0.5)
     parser.add_argument("--out-dir", type=str, default="viz")
-    parser.add_argument("--video", action="store_true")
+    parser.add_argument("--only-video", action="store_true")
     args, opts = parser.parse_known_args()
 
     configs.load(args.config, recursive=True)
@@ -121,6 +139,8 @@ def main() -> None:
     )
     model.eval()
 
+    xbound, ybound = cfg.test_pipeline[3].xbound, cfg.test_pipeline[3].ybound
+
     for data in tqdm(dataflow):
         metas = data["metas"].data[0][0]
         name = "{}".format(metas["timestamp"])
@@ -146,6 +166,13 @@ def main() -> None:
             os.path.join(args.out_dir, "seg", "gt", f"{name_gt}.png"),
             masks_gt,
             classes=cfg.map_classes,
+        )
+
+        bev_to_points(
+            masks_pred,
+            xbound,
+            ybound,
+            os.path.join(args.out_dir, "seg", "pred_points", f"{name_pred}.pcd"),
         )
 
     # 两个图片文件夹路径

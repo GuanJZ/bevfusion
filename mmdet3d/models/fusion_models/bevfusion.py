@@ -300,7 +300,7 @@ class BEVFusion(Base3DFusionModel):
                         )
                 elif type == "map":
                     logits = head(x)
-                    # logits = torch.tensor(np.loadtxt("assets/head.map.classifier.output.cpp.total.txt").reshape(1, 6, 200, 200),
+                    # logits = torch.tensor(np.loadtxt("assets/head.map.classifier.output.cpp.total3.txt").reshape(1, 6, 200, 200),
                     #      dtype=torch.float32).to(x.device)
                     for k in range(batch_size):
                         outputs[k].update(

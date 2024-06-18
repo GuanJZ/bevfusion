@@ -163,25 +163,25 @@ test_pipeline:
       - lidar_aug_matrix
 
 data:
-  samples_per_gpu: 8
+  samples_per_gpu: 4
   workers_per_gpu: 4
   train:
     type: CBGSDataset
     dataset:
       type: ${dataset_type}
       dataset_root: ${dataset_root}
-      ann_file: ${dataset_root + "nuscenes_infos_train.pkl"}
+      ann_file: ${dataset_root + "ge_infos_infer_7v.pkl"}
       pipeline: ${train_pipeline}
       object_classes: ${object_classes}
       map_classes: ${map_classes}
       modality: ${input_modality}
       test_mode: false
-      use_valid_flag: true
+      use_valid_flag: false
       box_type_3d: LiDAR
   val:
     type: ${dataset_type}
     dataset_root: ${dataset_root}
-    ann_file: ${dataset_root + "nuscenes_infos_train.pkl"}
+    ann_file: ${dataset_root + "ge_infos_infer_7v.pkl"}
     pipeline: ${test_pipeline}
     object_classes: ${object_classes}
     map_classes: ${map_classes}
@@ -191,12 +191,12 @@ data:
   test:
     type: ${dataset_type}
     dataset_root: ${dataset_root}
-    ann_file: ${dataset_root + "nuscenes_infos_val.pkl"}
+    ann_file: ${dataset_root + "ge_infos_val.pkl"}
     pipeline: ${test_pipeline}
     object_classes: ${object_classes}
     map_classes: ${map_classes}
     modality: ${input_modality}
-    test_mode: true
+    test_mode: false
     box_type_3d: LiDAR
 
 evaluation:

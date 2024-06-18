@@ -36,7 +36,7 @@ def recursive_eval(obj, globals=None):
 
 
 def main() -> None:
-    os.environ['MASTER_HOST'] = "localhost" + ":" + "12357"
+    os.environ['MASTER_HOST'] = "localhost" + ":" + "12358"
     dist.init()
 
     parser = argparse.ArgumentParser()
@@ -47,7 +47,7 @@ def main() -> None:
     parser.add_argument("--bbox-classes", nargs="+", type=int, default=None)
     parser.add_argument("--bbox-score", type=float, default=None)
     parser.add_argument("--map-score", type=float, default=0.5)
-    parser.add_argument("--out-dir", type=str, default="viz")
+    parser.add_argument("--out-dir", type=str, default="viz_map")
     args, opts = parser.parse_known_args()
 
     configs.load(args.config, recursive=True)

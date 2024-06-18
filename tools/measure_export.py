@@ -83,7 +83,7 @@ def main(engine = "onnx"):
         atol_threshold1, atol_threshold2 = 1e-3, 1e-2
 
     if engine == "tensorrt":
-        trt_model_path = "runs/seg_camera_only_resnet50/build/onnx_fp16/camera.backbone.plan"
+        trt_model_path = "runs/seg_camera_only_resnet50/build/camera.backbone.plan"
         camera_trt_infer = TensorRTInfer(trt_model_path)
         outputs = camera_trt_infer.run(input_data)
         output_depth, output_feats = outputs[0], outputs[1]
@@ -110,7 +110,7 @@ def main(engine = "onnx"):
         output_feats = vtransform_onnx_infer.run(input_data)[0]
         atol_threshold = 1e-2
     if engine == "tensorrt":
-        trt_model_path = "runs/seg_camera_only_resnet50/build/onnx_fp16/camera.vtransform.plan"
+        trt_model_path = "runs/seg_camera_only_resnet50/build/camera.vtransform.plan"
         vtransform_trt_infer = TensorRTInfer(trt_model_path)
         output_feats = vtransform_trt_infer.run(input_data)
         atol_threshold = 1e-1
@@ -132,7 +132,7 @@ def main(engine = "onnx"):
         output_feats = decoder_onnx_infer.run(input_data)[0]
         atol_threshold = 1e-2
     if engine == "tensorrt":
-        trt_model_path = "runs/seg_camera_only_resnet50/build/onnx_fp16/fuser.plan"
+        trt_model_path = "runs/seg_camera_only_resnet50/build/fuser.plan"
         decoder_trt_infer = TensorRTInfer(trt_model_path)
         output_feats = decoder_trt_infer.run(input_data)
         atol_threshold = 1e-1
@@ -154,7 +154,7 @@ def main(engine = "onnx"):
         output_feats = decoder_onnx_infer.run(input_data)[0]
         atol_threshold = 1e-3
     if engine == "tensorrt":
-        trt_model_path = "runs/seg_camera_only_resnet50/build/onnx_fp16/head.map.plan"
+        trt_model_path = "runs/seg_camera_only_resnet50/build/head.map.plan"
         head_trt_infer = TensorRTInfer(trt_model_path)
         output_feats = head_trt_infer.run(input_data)
         atol_threshold = 1e-2
