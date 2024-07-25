@@ -67,9 +67,9 @@ class LSSTransform(BaseTransform):
         x = self.depthnet(x)
         depth = x[:, : self.D].softmax(dim=1)
         ###
-        import numpy as np
-        # np.savetxt("assets/encoder.camera.depth.output.txt", depth.clone().cpu().numpy().reshape(-1))
-        # np.savetxt("assets/encoder.camera.feats.output.txt", x[:, self.D : (self.D + self.C)].permute(0, 2, 3, 1) .clone().cpu().numpy().reshape(-1))
+        # import numpy as np
+        # np.savetxt("runs/camera_seg_0.5_0.5_2024-02-05-14-34-19_train_e20/in_out_txt/encoder.camera.depth.output.txt", depth.clone().cpu().numpy().reshape(-1))
+        # np.savetxt("runs/camera_seg_0.5_0.5_2024-02-05-14-34-19_train_e20/in_out_txt/encoder.camera.feats.output.txt", x[:, self.D : (self.D + self.C)].permute(0, 2, 3, 1).clone().cpu().numpy().reshape(-1))
         x = depth.unsqueeze(1) * x[:, self.D : (self.D + self.C)].unsqueeze(2) # 原来的代码
         # import torch
         # depth = torch.tensor(np.loadtxt("assets/encoder.camera.depth.output.cpp.txt").reshape(6, 118, 32, 88),
@@ -88,10 +88,10 @@ class LSSTransform(BaseTransform):
     def forward(self, *args, **kwargs):
         x = super().forward(*args, **kwargs)
         import numpy as np
-        # np.savetxt("assets/vtransform.downsample.input.txt", x.clone().cpu().numpy().reshape(-1))
+        # np.savetxt("runs/camera_seg_0.5_0.5_2024-02-05-14-34-19_train_e20/in_out_txt/vtransform.downsample.input.txt", x.clone().cpu().numpy().reshape(-1))
         # import torch
         # x = torch.tensor(np.loadtxt("assets/vtransform.downsample.input.cpp.txt").reshape(1, 80, 256, 256),
         #                  dtype=torch.float32).to(x.device)
         x = self.downsample(x)
-        # np.savetxt("assets/vtransform.downsample.output.txt", x.clone().cpu().numpy().reshape(-1))
+        # np.savetxt("runs/camera_seg_0.5_0.5_2024-02-05-14-34-19_train_e20/in_out_txt/vtransform.downsample.output.txt", x.clone().cpu().numpy().reshape(-1))
         return x

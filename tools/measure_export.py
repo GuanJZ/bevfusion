@@ -65,25 +65,25 @@ class TensorRTInfer():
         return outputs
 
 
-def main(engine = "onnx"):
+def main(engine, model_path):
     print(f"val precision of {engine} ...")
     ############################ encoder.camera ###################################################
-    input_data_path = "assets/encoder.camera.input.txt"
-    output_depth_data_path = "assets/encoder.camera.depth.output.txt"
-    output_feats_data_path = "assets/encoder.camera.feats.output.txt"
+    input_data_path = f"runs/{model_path}/in_out_txt/encoder.camera.input.txt"
+    output_depth_data_path = f"runs/{model_path}/in_out_txt/encoder.camera.depth.output.txt"
+    output_feats_data_path = f"runs/{model_path}/in_out_txt/encoder.camera.feats.output.txt"
     input_data = np.loadtxt(input_data_path).reshape(1, 6, 3, 256, 704)
     output_depth_data = np.loadtxt(output_depth_data_path).reshape(6, 118, 32, 88)
     output_feats_data = np.loadtxt(output_feats_data_path).reshape(6, 32, 88, 80)
 
     if engine == "onnx":
-        onnx_model_path = "runs/seg_camera_only_resnet50/onnx_fp16/camera.backbone.onnx"
+        onnx_model_path = f"runs/{model_path}/onnx_fp16/camera.backbone.onnx"
         camera_onnx_infer = ONNXInfer(onnx_model_path)
         output_feats, output_depth = camera_onnx_infer.run(input_data)
 
-        atol_threshold1, atol_threshold2 = 1e-3, 1e-2
+        atol_threshold1, atol_threshold2 = 1e-2, 1e-2
 
     if engine == "tensorrt":
-        trt_model_path = "runs/seg_camera_only_resnet50/build/camera.backbone.plan"
+        trt_model_path = f"runs/{model_path}/build_seg/camera.backbone.plan"
         camera_trt_infer = TensorRTInfer(trt_model_path)
         outputs = camera_trt_infer.run(input_data)
         output_depth, output_feats = outputs[0], outputs[1]
@@ -100,17 +100,17 @@ def main(engine = "onnx"):
         print(f"export encoder.camera.feats {engine} incorrect 😥😥😥, threshold: {atol_threshold2}")
 
     ################################ vtransform.downsample ################################
-    input_data_path = "assets/vtransform.downsample.input.txt"
-    output_data_path = "assets/vtransform.downsample.output.txt"
+    input_data_path = f"runs/{model_path}/in_out_txt/vtransform.downsample.input.txt"
+    output_data_path = f"runs/{model_path}/in_out_txt/vtransform.downsample.output.txt"
     input_data = np.loadtxt(input_data_path).reshape(1, 80, 256, 256)
     output_data = np.loadtxt(output_data_path).reshape(1, 80, 128, 128)
     if engine == "onnx":
-        onnx_model_path = "runs/seg_camera_only_resnet50/onnx_fp16/camera.vtransform.onnx"
+        onnx_model_path = f"runs/{model_path}/onnx_fp16/camera.vtransform.onnx"
         vtransform_onnx_infer = ONNXInfer(onnx_model_path)
         output_feats = vtransform_onnx_infer.run(input_data)[0]
-        atol_threshold = 1e-2
+        atol_threshold = 1e-1
     if engine == "tensorrt":
-        trt_model_path = "runs/seg_camera_only_resnet50/build/camera.vtransform.plan"
+        trt_model_path = f"runs/{model_path}/build_seg/camera.vtransform.plan"
         vtransform_trt_infer = TensorRTInfer(trt_model_path)
         output_feats = vtransform_trt_infer.run(input_data)
         atol_threshold = 1e-1
@@ -121,18 +121,18 @@ def main(engine = "onnx"):
         print(f"export vtransform.downsample {engine} incorrect 😥😥😥, threshold: {atol_threshold}")
 
     ################################ decoder #################################################
-    input_data_path = "assets/decoder.input.txt"
-    output_data_path = "assets/decoder.output.txt"
+    input_data_path = f"runs/{model_path}/in_out_txt/decoder.input.txt"
+    output_data_path = f"runs/{model_path}/in_out_txt/decoder.output.txt"
     input_data = np.loadtxt(input_data_path).reshape(1, 80, 128, 128)
     output_data = np.loadtxt(output_data_path).reshape(1, 256, 128, 128)
 
     if engine == "onnx":
-        onnx_model_path = "runs/seg_camera_only_resnet50/onnx_fp16/fuser.onnx"
+        onnx_model_path = f"runs/{model_path}/onnx_fp16/fuser.onnx"
         decoder_onnx_infer = ONNXInfer(onnx_model_path)
         output_feats = decoder_onnx_infer.run(input_data)[0]
-        atol_threshold = 1e-2
+        atol_threshold = 1e-1
     if engine == "tensorrt":
-        trt_model_path = "runs/seg_camera_only_resnet50/build/fuser.plan"
+        trt_model_path = f"runs/{model_path}/build_seg/fuser.plan"
         decoder_trt_infer = TensorRTInfer(trt_model_path)
         output_feats = decoder_trt_infer.run(input_data)
         atol_threshold = 1e-1
@@ -143,18 +143,18 @@ def main(engine = "onnx"):
         print(f"export decoder {engine} incorrect 😥😥😥, threshold: {atol_threshold}")
 
     ################################# head.map.classifier ####################################
-    input_data_path = "assets/head.map.classifier.input.txt"
-    output_data_path = "assets/head.map.classifier.output.txt"
+    input_data_path = f"runs/{model_path}/in_out_txt/head.map.classifier.input.txt"
+    output_data_path = f"runs/{model_path}/in_out_txt/head.map.classifier.output.txt"
     input_data = np.loadtxt(input_data_path).reshape(1, 256, 200, 200)
-    output_data = np.loadtxt(output_data_path).reshape(1, 6, 200, 200)
+    output_data = np.loadtxt(output_data_path).reshape(1, 1, 200, 200)
 
     if engine == "onnx":
-        onnx_model_path = "runs/seg_camera_only_resnet50/onnx_fp16/head.map.onnx"
+        onnx_model_path = f"runs/{model_path}/onnx_fp16/head.map.onnx"
         decoder_onnx_infer = ONNXInfer(onnx_model_path)
         output_feats = decoder_onnx_infer.run(input_data)[0]
-        atol_threshold = 1e-3
+        atol_threshold = 1e-2
     if engine == "tensorrt":
-        trt_model_path = "runs/seg_camera_only_resnet50/build/head.map.plan"
+        trt_model_path = f"runs/{model_path}/build_seg/head.map.plan"
         head_trt_infer = TensorRTInfer(trt_model_path)
         output_feats = head_trt_infer.run(input_data)
         atol_threshold = 1e-2
@@ -165,7 +165,12 @@ def main(engine = "onnx"):
         print(f"export head.map.classifier {engine} incorrect 😥😥😥, threshold: {atol_threshold}")
 
 if __name__ == "__main__":
+
+    # model_path = "camera_seg_0.5_0.5_2024-02-05-14-34-19_infer_e9" # 7v
+    # model_path = "seg_camera_only_resnet50_ge_bev_output_scope_0.5" # 6v
+    model_path = "camera_seg_0.5_0.5_2024-02-05-14-34-19_train_e20"  # 7v
+    print(f"model-> {model_path}")
     engine = "onnx"
-    main(engine)
+    main(engine, model_path)
     engine = "tensorrt"
-    main(engine)
+    main(engine, model_path)

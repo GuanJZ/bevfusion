@@ -122,10 +122,10 @@ class BEVSegmentationHead(nn.Module):
             x = x[0]
 
         x = self.transform(x)
-        # x = torch.tensor(np.loadtxt("assets/sample_grid.output.cpp.half.txt").reshape(1, 256, 200, 200), dtype=torch.float32).to(x.device)
-        # np.savetxt("assets/head.map.classifier.input.txt", x.clone().cpu().numpy().reshape(-1))
+        # x = torch.tensor(np.loadtxt("runs/seg_camera_only_resnet50_map/assets/bev_grid_sample_output_cpp_demo.txt").reshape(1, 256, 200, 200), dtype=torch.float32).to(x.device)
+        # np.savetxt("runs/camera_seg_0.5_0.5_2024-02-05-14-34-19_train_e20/in_out_txt/head.map.classifier.input.txt", x.clone().cpu().numpy().reshape(-1))
         x = self.classifier(x)
-        # np.savetxt("assets/head.map.classifier.output.txt", torch.sigmoid(x).clone().cpu().numpy().reshape(-1))
+        # np.savetxt("runs/camera_seg_0.5_0.5_2024-02-05-14-34-19_train_e20/in_out_txt/head.map.classifier.output.txt", torch.sigmoid(x).clone().cpu().numpy().reshape(-1))
 
         if self.training:
             losses = {}

@@ -8,7 +8,7 @@ model:
         out_indices: [ 1, 2, 3 ]
         init_cfg:
           type: Pretrained
-          checkpoint: /home/junzhiguan/bevfusion/runs/seg_camera_only_resnet50_map/seg_camera_only_resnet50.pth  # 只用 encoders.camera.backbone权重
+          checkpoint: https://download.pytorch.org/models/resnet50-0676ba61.pth
       neck:
         type: GeneralizedLSSFPN
         in_channels: [512, 1024, 2048]
@@ -33,7 +33,7 @@ model:
         xbound: [-51.2, 51.2, 0.4]
         ybound: [-51.2, 51.2, 0.4]
         zbound: [-10.0, 10.0, 20.0]
-        dbound: [1.0, 60.0, 0.2]
+        dbound: [1.0, 60.0, 0.5]
         downsample: 2
   fuser: null
   decoder:

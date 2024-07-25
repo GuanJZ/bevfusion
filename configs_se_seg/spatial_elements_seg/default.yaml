@@ -77,8 +77,8 @@ train_pipeline:
   -
     type: makeBEVSegmentation
     dataset_root: ${dataset_root}
-    xbound: [-50.0, 50.0, 0.1]
-    ybound: [-50.0, 50.0, 0.1]
+    xbound: [-50.0, 50.0, 0.5]
+    ybound: [-50.0, 50.0, 0.5]
     classes: ${map_classes}
   -
     type: ImageNormalize
@@ -136,8 +136,8 @@ test_pipeline:
   -
     type: makeBEVSegmentation
     dataset_root: ${dataset_root}
-    xbound: [-50.0, 50.0, 0.1]
-    ybound: [-50.0, 50.0, 0.1]
+    xbound: [-50.0, 50.0, 0.5]
+    ybound: [-50.0, 50.0, 0.5]
     classes: ${map_classes}
   -
     type: ImageNormalize
@@ -163,25 +163,25 @@ test_pipeline:
       - lidar_aug_matrix
 
 data:
-  samples_per_gpu: 4
+  samples_per_gpu: 8
   workers_per_gpu: 4
   train:
-    type: CBGSDataset
-    dataset:
-      type: ${dataset_type}
-      dataset_root: ${dataset_root}
-      ann_file: ${dataset_root + "ge_infos_infer_7v.pkl"}
-      pipeline: ${train_pipeline}
-      object_classes: ${object_classes}
-      map_classes: ${map_classes}
-      modality: ${input_modality}
-      test_mode: false
-      use_valid_flag: false
-      box_type_3d: LiDAR
+#    type: CBGSDataset
+#    dataset:
+    type: ${dataset_type}
+    dataset_root: ${dataset_root}
+    ann_file: ${dataset_root + "ge_infos_train_7v_front_120.pkl"}
+    pipeline: ${train_pipeline}
+    object_classes: ${object_classes}
+    map_classes: ${map_classes}
+    modality: ${input_modality}
+    test_mode: false
+    use_valid_flag: false
+    box_type_3d: LiDAR
   val:
     type: ${dataset_type}
     dataset_root: ${dataset_root}
-    ann_file: ${dataset_root + "ge_infos_infer_7v.pkl"}
+    ann_file: ${dataset_root + "ge_infos_val_7v_front_120.pkl"}
     pipeline: ${test_pipeline}
     object_classes: ${object_classes}
     map_classes: ${map_classes}

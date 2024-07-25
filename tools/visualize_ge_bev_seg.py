@@ -36,8 +36,8 @@ def recursive_eval(obj, globals=None):
 def bev_to_points(bev_seg, xbound, ybound, save_path):
     indices = np.argwhere(bev_seg.squeeze() == 1)
     x_indices, y_indices = indices[:, 0], indices[:, 1]
-    x_coords = x_indices * xbound[2] + xbound[0] + xbound[2] / 2.
-    y_coords = y_indices * ybound[2] + ybound[0] + ybound[2] / 2.
+    x_coords = x_indices * xbound[2] + xbound[0]
+    y_coords = y_indices * ybound[2] + ybound[0]
     z_coords = np.full(x_coords.shape, -0.11)
 
     points = np.vstack((x_coords, y_coords, z_coords)).T
@@ -95,7 +95,7 @@ def image2video(image_folder1, image_folder2, video_path):
     video.release()
 
 def main() -> None:
-    os.environ['MASTER_HOST'] = "localhost" + ":" + "12357"
+    os.environ['MASTER_HOST'] = "localhost" + ":" + "12356"
     dist.init()
 
     parser = argparse.ArgumentParser()
@@ -109,12 +109,10 @@ def main() -> None:
     parser.add_argument("--out-dir", type=str, default="viz")
     parser.add_argument("--only-video", action="store_true")
     args, opts = parser.parse_known_args()
-
     configs.load(args.config, recursive=True)
     configs.update(opts)
 
     cfg = Config(recursive_eval(configs), filename=args.config)
-
     torch.backends.cudnn.benchmark = cfg.cudnn_benchmark
     torch.cuda.set_device(dist.local_rank())
 
@@ -154,6 +152,9 @@ def main() -> None:
 
         name_pred = name + "_pred"
         masks_pred = outputs[0]["masks_bev"].numpy()
+
+        # masks_pred = np.loadtxt("runs/seg_camera_only_resnet50_ge_bev_output_scope_0.5/head.map.classifier.output.cpp.txt").reshape(1, 200, 200)
+
         masks_pred = masks_pred >= args.map_score
 
         visualize_map(

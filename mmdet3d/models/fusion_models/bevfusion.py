@@ -100,9 +100,6 @@ class BEVFusion(Base3DFusionModel):
         lidar_aug_matrix,
         img_metas,
     ) -> torch.Tensor:
-        # np.savetxt("assets/encoder.camera.input.txt", x.clone().cpu().numpy().reshape(-1))
-        # x = torch.tensor(np.loadtxt("assets/encoder.camera.input.cpp.txt").reshape(1, 6, 3, 256, 704),
-        #                  dtype=torch.float32).to(x.device)
         B, N, C, H, W = x.size()
         x = x.view(B * N, C, H, W)
 
@@ -226,6 +223,18 @@ class BEVFusion(Base3DFusionModel):
         gt_labels_3d=None,
         **kwargs,
     ):
+        # np.savetxt("runs/camera_seg_0.2_0.1_2024-02-05-14-34-19_infer_e20/deploy_data/camera_intrinsics.txt",
+        #            camera_intrinsics.clone().cpu().numpy().reshape(-1))
+        # np.savetxt("runs/camera_seg_0.2_0.1_2024-02-05-14-34-19_infer_e20/deploy_data/camera2lidar.txt",
+        #            camera2lidar.clone().cpu().numpy().reshape(-1))
+        # np.savetxt("runs/camera_seg_0.2_0.1_2024-02-05-14-34-19_infer_e20/deploy_data/img_aug_matrix.txt",
+        #            img_aug_matrix.clone().cpu().numpy().reshape(-1))
+
+        # import os
+        # os.makedirs("runs/camera_seg_0.5_0.5_2024-02-05-14-34-19_train_e20/in_out_txt", exist_ok=True)
+        # np.savetxt("runs/camera_seg_0.5_0.5_2024-02-05-14-34-19_train_e20/in_out_txt/encoder.camera.input.txt", img.clone().cpu().numpy().reshape(-1))
+        # x = torch.tensor(np.loadtxt("assets/encoder.camera.input.cpp.txt").reshape(1, 6, 3, 256, 704),
+        #                  dtype=torch.float32).to(x.device)
         features = []
         for sensor in (
             self.encoders if self.training else list(self.encoders.keys())[::-1]
@@ -261,10 +270,10 @@ class BEVFusion(Base3DFusionModel):
             x = features[0]
 
         batch_size = x.shape[0]
-        # np.savetxt("assets/decoder.input.txt", x.clone().cpu().numpy().reshape(-1))
+        # np.savetxt("runs/camera_seg_0.5_0.5_2024-02-05-14-34-19_train_e20/in_out_txt/decoder.input.txt", x.clone().cpu().numpy().reshape(-1))
         x = self.decoder["backbone"](x)
         x = self.decoder["neck"](x)
-        # np.savetxt("assets/decoder.output.txt", x.clone().cpu().numpy().reshape(-1))
+        # np.savetxt("runs/camera_seg_0.5_0.5_2024-02-05-14-34-19_train_e20/in_out_txt/decoder.output.txt", x.clone().cpu().numpy().reshape(-1))
         # x = torch.tensor(np.loadtxt("assets/decoder.output.cpp.txt").reshape(1, 256, 128, 128),
         #                  dtype=torch.float32).to(x.device)
 

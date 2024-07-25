@@ -123,6 +123,7 @@ class ImageAug3D:
         data["img"] = new_imgs
         # update the calibration matrices
         data["img_aug_matrix"] = transforms
+        # np.savetxt("runs/seg_camera_only_resnet50_ge_bev_output_scope_0.5/deploy_data/img_aug_matrix.txt", np.vstack(data["img_aug_matrix"]).reshape(-1))
         return data
 
 

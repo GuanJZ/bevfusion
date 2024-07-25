@@ -45,9 +45,9 @@ def main() -> None:
     parser.add_argument("--checkpoint", type=str, default=None)
     parser.add_argument("--split", type=str, default="val", choices=["train", "val"])
     parser.add_argument("--bbox-classes", nargs="+", type=int, default=None)
-    parser.add_argument("--bbox-score", type=float, default=None)
+    parser.add_argument("--bbox-score", type=float, default=0.5)
     parser.add_argument("--map-score", type=float, default=0.5)
-    parser.add_argument("--out-dir", type=str, default="viz_map")
+    parser.add_argument("--out-dir", type=str, default="viz_det/bevfusion/")
     args, opts = parser.parse_known_args()
 
     configs.load(args.config, recursive=True)
@@ -137,7 +137,7 @@ def main() -> None:
             for k, image_path in enumerate(metas["filename"]):
                 image = mmcv.imread(image_path)
                 visualize_camera(
-                    os.path.join(args.out_dir, f"camera-{k}", f"{name}.png"),
+                    os.path.join(args.out_dir, f"thred_{args.bbox_score}", f"camera-{k}", f"{name}.png"),
                     image,
                     bboxes=bboxes,
                     labels=labels,
@@ -148,7 +148,7 @@ def main() -> None:
         if "points" in data:
             lidar = data["points"].data[0][0].numpy()
             visualize_lidar(
-                os.path.join(args.out_dir, "lidar", f"{name}.png"),
+                os.path.join(args.out_dir, f"thred_{args.bbox_score}", "lidar", f"{name}.png"),
                 lidar,
                 bboxes=bboxes,
                 labels=labels,

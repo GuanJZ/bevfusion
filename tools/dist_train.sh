@@ -1,0 +1,1 @@
+torchpack dist-run -np 4 python tools/train.py configs_se_seg/spatial_elements_seg/seg/camera-bev-resnet50.yaml --checkpoint /home/junzhiguan/bevfusion/runs/seg_camera_only_resnet50_map/seg_camera_only_resnet50.pth

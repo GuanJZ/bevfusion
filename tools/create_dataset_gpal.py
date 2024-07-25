@@ -20,17 +20,17 @@ if __name__ == '__main__':
     args = parse_args()
 
     if args.mode == "train":
-        date_list = ["2024-02-05", "2024-02-06", "2024-02-07"]
-        bagname_list = [["2024-02-05-14-34-19", "2024-02-05-14-44-19", "2024-02-05-15-04-19"],
-                        ["2024-02-06-10-29-02", "2024-02-06-10-39-02", "2024-02-06-10-49-02", "2024-02-06-10-59-02", "2024-02-06-11-09-02", "2024-02-06-11-19-02"],
-                        ["2024-02-07-10-53-10"]
+        date_list = ["2024-02-05"]
+        bagname_list = [[
+                        "2024-02-05-14-34-19", "2024-02-05-14-44-19", "2024-02-05-14-54-19", "2024-02-05-15-04-19", "2024-02-05-15-14-19", \
+                        "2024-02-05-15-26-30", "2024-02-05-15-36-30",  "2024-02-05-15-56-31", "2024-02-05-16-06-31", "2024-02-05-15-46-31"
+                        ]
+                        # ["2024-02-06-10-29-02", "2024-02-06-10-39-02", "2024-02-06-10-49-02", "2024-02-06-10-59-02", "2024-02-06-11-09-02", "2024-02-06-11-19-02"],
+                        # ["2024-02-07-10-53-10"]
                         ]
     if args.mode == "val":
         date_list = ["2024-02-05"]
-        bagname_list = [["2024-02-05-14-34-19", "2024-02-05-14-44-19"],
-                        ["2024-02-06-10-29-02", "2024-02-06-10-39-02", "2024-02-06-10-49-02", "2024-02-06-10-59-02",
-                         "2024-02-06-11-09-02", "2024-02-06-11-19-02"],
-                        ["2024-02-07-10-53-10"]
+        bagname_list = [["2024-02-05-14-34-19", "2024-02-05-14-44-19", "2024-02-05-15-04-19"],
                         ]
     if args.mode == "infer":
         if args.sensor_layout == "6v":
@@ -46,9 +46,8 @@ if __name__ == '__main__':
 
     if args.sensor_layout == "7v":
         cams_type = ["front_120", "back", "left_front", "left_back", "right_front", "right_back"]
-        # cams_type = ["back", "left_front", "left_back", "right_front", "right_back"]
     if args.sensor_layout == "6v":
-        cams_type = ["back_left", "back_right", "front_left", "front_right", "left", "right"]
+        cams_type = ["front_left", "front_right", "left", "right", "back_left", "back_right"]
 
     dataset = {"infos": [], "metadata": {"version": "v1.0"}}
     for date_idx, date in enumerate(date_list):
@@ -108,7 +107,7 @@ if __name__ == '__main__':
 
                     # 解析参数
                     if args.sensor_layout == "7v":
-                        camera_paras_path = os.path.join(data_dir, "calibration-master@fa4bb20d1b0/ID4/camera/2024_01_15_new", f"{cam_type}.yaml")
+                        camera_paras_path = os.path.join(data_dir, "calibration-master@fa4bb20d1b0/ID4/camera/2024_02_04", f"{cam_type}.yaml")
                     if args.sensor_layout == "6v":
                         camera_paras_path = os.path.join(data_dir, "id4cameraparameters", f"{cam_type}.yml")
                     fs = cv2.FileStorage(camera_paras_path, cv2.FILE_STORAGE_READ)
@@ -167,24 +166,24 @@ if __name__ == '__main__':
                 dataset["infos"].append(data)
     if args.mode == "train":
         if args.undistort:
-            with open(os.path.join(pkl_path, "ge_infos_train_fov120_undist.pkl"), "wb") as file:
+            with open(os.path.join(pkl_path, f"ge_infos_train_{args.sensor_layout}_{cams_type[0]}_undist.pkl"), "wb") as file:
                 pickle.dump(dataset, file)
         else:
-            with open(os.path.join(pkl_path, "ge_infos_train_fov120.pkl"), "wb") as file:
+            with open(os.path.join(pkl_path, f"ge_infos_train_{args.sensor_layout}_{cams_type[0]}.pkl"), "wb") as file:
                 pickle.dump(dataset, file)
     if args.mode == "val":
         if args.undistort:
-            with open(os.path.join(pkl_path, "ge_infos_val_fov120_undist.pkl"), "wb") as file:
+            with open(os.path.join(pkl_path, f"ge_infos_val_{args.sensor_layout}_{cams_type[0]}_undist.pkl"), "wb") as file:
                 pickle.dump(dataset, file)
         else:
-            with open(os.path.join(pkl_path, "ge_infos_val_fov120.pkl"), "wb") as file:
+            with open(os.path.join(pkl_path, f"ge_infos_val_{args.sensor_layout}_{cams_type[0]}.pkl"), "wb") as file:
                 pickle.dump(dataset, file)
     if args.mode == "infer":
         if args.undistort:
-            with open(os.path.join(pkl_path, f"ge_infos_infer_{args.sensor_layout}_undist.pkl"), "wb") as file:
+            with open(os.path.join(pkl_path, f"ge_infos_infer_{args.sensor_layout}_{cams_type[0]}_undist.pkl"), "wb") as file:
                 pickle.dump(dataset, file)
         else:
-            with open(os.path.join(pkl_path, f"ge_infos_infer_{args.sensor_layout}.pkl"), "wb") as file:
+            with open(os.path.join(pkl_path, f"ge_infos_infer_{args.sensor_layout}_{cams_type[0]}.pkl"), "wb") as file:
                 pickle.dump(dataset, file)
 
 
